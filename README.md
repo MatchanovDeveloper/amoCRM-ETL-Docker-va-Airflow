@@ -46,120 +46,81 @@ Airflow'da tartib: `contacts → company → transactions`.
 
 ### 4.1. Tayyorlash
 
-Kerak: Python 3.13, PostgreSQL, Docker Desktop, Git.
+Kerak: Docker Desktop, PostgreSQL, Git (lokal sinash uchun qo'shimcha Python 3.13).
 
 ```powershell
-git clone <REPO_MANZILI>
-cd amoCRM
-python -m venv my_venv
-my_venv\Scripts\activate
-python -m pip install -r requirements.txt
+git clone https://github.com/MatchanovDeveloper/amoCRM-ETL-Docker-va-Airflow.git
+cd amoCRM-ETL-Docker-va-Airflow
 ```
+
+PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Databases → Create → Database).
 
 ### 4.2. Login va parollarni qayerdan olish
 
 | Nima | Qayerdan olinadi |
 |---|---|
-| `AMO_CLIENT_ID` | amoCRM → Sozlamalar → Integratsiyalar → o'z integratsiyangiz → **Keys and accesses** → *Integration ID* |
-| `AMO_CLIENT_SECRET` | Shu sahifada *Secret key* |
-| `AMO_AUTH_CODE` | Shu sahifada *Authorization code* (20 daqiqa yashaydi, bir marta ishlaydi) |
 | `AMO_SUBDOMAIN` | amoCRM manzilidagi nom: `https://BU_YERDA.amocrm.ru` |
-| `AMO_REDIRECT_URL` | Integratsiya yaratayotganda **Redirect link** maydoniga yozgan manzilingiz (pastdagi rasmga qarang) |
+| `AMO_LONG_TOKEN` | amoCRM → Sozlamalar → Integratsiyalar → o'z integratsiyangiz → **Keys and accesses** → *long-lived token* yarating (muddati 1-5 yil). Token `eyJ...` bilan boshlanadi |
+| `PG_USER`, `PG_PASSWORD` | PostgreSQL logini (odatda `postgres`) va paroli. Parolni o'zingiz belgilaysiz: `ALTER USER postgres PASSWORD 'PAROL';` |
+| `PG_NAME` | Baza nomi (`amocrm`) |
+| `FERNET_KEY` | Terminalda yaratiladi: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"` |
+| `AIRFLOW_UID` | Windows'da `50000` |
+| Airflow login / parol | `airflow` / `airflow` (<http://localhost:8080>) |
 
-#### `AMO_REDIRECT_URL` ga nima yozish kerak
+### 4.3. `.env` faylni yaratish
 
-amoCRM'da integratsiya yaratayotganda (yoki tahrirlayotganda) **Redirect link** maydoniga istalgan `https://...` manzilni yozasiz (masalan `https://ya.ru`). `sozlamalar.py` dagi `AMO_REDIRECT_URL` ga **aynan shu manzilni, harfma-harf bir xil** qilib yozing, aks holda amoCRM authorization code ni rad etadi.
-
-![Integratsiyani tahrirlash oynasi: Redirect link maydoni](AMO_REDIRECT_URL.png)
-
-```python
-AMO_REDIRECT_URL = "https://ya.ru"   # amoCRM'dagi Redirect link bilan bir xil bo'lsin
-```
-
-Bu manzilga hech narsa yuborilmaydi (kodni amoCRM sahifasidan o'zingiz nusxalaysiz), shuning uchun u haqiqiy ishlaydigan sahifa bo'lishi shart emas.
-| `DB_PASSWORD` | PostgreSQL'dagi `postgres` paroli. O'zingiz belgilaysiz: `ALTER USER postgres PASSWORD 'PAROL';` |
-| `FERNET_KEY` | Terminalda yaratiladi (pastda) |
-
-### 4.3. Sozlamalar faylini yaratish
-
-Maxfiy bo'lgani uchun `sozlamalar.py` GitHub'da yo'q. `dags/pipelines/sozlamalar.py` nomli fayl yarating va to'ldiring:
-
-```python
-import os
-
-# ===== SHU YERNI TO'LDIRING =====
-AMO_CLIENT_ID = ""
-AMO_CLIENT_SECRET = ""
-AMO_SUBDOMAIN = ""
-AMO_REDIRECT_URL = ""
-AMO_AUTH_CODE = ""      # faqat birinchi marta yoziladi
-
-DB_USER = ""
-DB_PASSWORD = ""
-DB_NAME = ""
-DB_PORT = 5432
-DB_HOST = "auto"        # "auto" = Docker/lokalni o'zi aniqlaydi
-# ===== PASTGA TEGMANG =====
-
-IN_DOCKER = os.path.exists("/.dockerenv")
-
-if DB_HOST == "auto":
-    DB_HOST = "host.docker.internal" if IN_DOCKER else "localhost"
-
-if IN_DOCKER:
-    TOKENS_DIR = "/opt/airflow/amo"
-else:
-    TOKENS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-```
-
-PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Create → Database).
-
-### 4.4. Lokal ishga tushirish (birinchi marta)
-
-`AMO_AUTH_CODE` ga yangi kodni yozing va darhol ishga tushiring:
+Maxfiy bo'lgani uchun `.env` GitHub'da yo'q. Namunadan nusxa oling va to'ldiring:
 
 ```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+```dotenv
+AIRFLOW_UID=50000
+FERNET_KEY=<yuqoridagi buyruq chiqargan kalit>
+AMO_SUBDOMAIN=<subdomen>
+AMO_LONG_TOKEN=eyJ...
+PG_USER=postgres
+PG_PASSWORD=<parol>
+PG_NAME=amocrm
+```
+
+Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
+
+### 4.4. Lokal ishga tushirish (ixtiyoriy, sinash uchun)
+
+```powershell
+python -m venv my_venv
+my_venv\Scripts\activate
+python -m pip install -r requirements.txt
+
+# .env dagi qiymatlarni shu terminal oynasiga yuklash
+Get-Content .env | Where-Object { $_ -match '^\s*[^#=\s]+=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item "env:$($k.Trim())" $v.Trim() }
+
 python dags\pipelines\contacts.py
-```
-
-Ildizda `access_token.txt` va `refresh_token.txt` paydo bo'ladi. **Shundan keyin `AMO_AUTH_CODE` ni yana bo'sh (`""`) qoldiring.** Keyin qolganlarini ham ishga tushiring:
-
-```powershell
 python dags\pipelines\company.py
 python dags\pipelines\transactions.py
 ```
 
-pgAdmin'da `amocrm` bazasida 3 ta jadval paydo bo'lishi kerak.
+pgAdmin'da `amocrm` bazasida 3 ta jadval paydo bo'lishi kerak. Paket yetishmasa: `python -m pip install requests pandas sqlalchemy "psycopg[binary]"`.
 
 ### 4.5. Docker bilan avtomatlashtirish
 
 1. Docker Desktop'ni oching ("Engine running" chiqquncha kuting).
-2. Loyiha ildizida `.env` fayl yarating:
-
-```
-AIRFLOW_UID=50000
-FERNET_KEY=<pastdagi buyruq chiqargan kalit>
-```
-
-Kalit yaratish: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"`
-
-3. `docker-compose.yaml` da quyidagi mount borligini tekshiring (token fayllari konteynerga yetib borishi uchun):
-
-```yaml
-volumes:
-  - ./:/opt/airflow/amo
-```
-
-4. Birinchi marta:
+2. Birinchi marta:
 
 ```powershell
 docker compose up airflow-init
 docker compose up -d --build
+docker compose ps
 ```
 
-Keyingi safarlarda faqat `docker compose up -d`.
+`docker compose ps` da hamma servis `healthy` yoki `running` bo'lsin. Keyingi safarlarda faqat `docker compose up -d`.
 
-5. <http://localhost:8080> ni oching (login `airflow`, parol `airflow`), `amo_crm` DAG'ini yoqing (Unpause). Sinash uchun "Trigger" tugmasini bosing, uchala task yashil bo'lishi kerak.
+3. <http://localhost:8080> ni oching (login `airflow`, parol `airflow`), `amo_crm` DAG'ini yoqing (Unpause), **Trigger** bosing. Uchala task (`contacts` → `company` → `transactions`) yashil bo'lishi kerak.
+4. `.env` ni keyin o'zgartirsangiz: `docker compose down`, so'ng `docker compose up -d` (`-v` qo'shmang).
+
 
 ### 4.6. Har kuni avtomatik yangilash
 
