@@ -1,3 +1,7 @@
 amocrm-api
 pandas
 python-dotenv
+requests
+pandas
+sqlalchemy
+psycopg[binary]
