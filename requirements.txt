@@ -1,0 +1,3 @@
+amocrm-api
+pandas
+python-dotenv

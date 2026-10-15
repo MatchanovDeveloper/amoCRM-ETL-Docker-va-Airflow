@@ -1,0 +1,8 @@
+﻿.env
+access_token.txt
+refresh_token.txt
+my_venv/
+__pycache__/
+config/airflow.cfg
+logs/*
+!logs/.gitkeep
