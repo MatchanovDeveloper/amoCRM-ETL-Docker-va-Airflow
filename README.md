@@ -93,59 +93,65 @@ $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create
 Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
 
 ### 4.4. How to run (localhost)
+```
+# Barcha buyruqlar VS Code terminalida, loyiha papkasida bajariladi
+# ============================================================
 
-#### 4.4.1. Python'ni tekshiring
-
-```powershell
+# ------------------------------------------------------------
+# 4.4.1. Python'ni tekshiring
+# ------------------------------------------------------------
 python --version
-```
+# "Python 3.x.x" chiqsa -> 4.4.3 ga o'ting
+# "Python was not found" chiqsa -> 4.4.2 ni bajaring
 
-`Python 3.x.x` chiqsa, 4.4.3-qadamga o'ting.
 
-#### 4.4.2. `Python was not found` chiqsa
+# ------------------------------------------------------------
+# 4.4.2. "Python was not found" chiqsa
+# ------------------------------------------------------------
 
-*Python o'rnatilmagan bo'lsa*, o'rnating va VS Code'ni qayta oching:
-
-```powershell
+# A) Python o'rnatilmagan bo'lsa: o'rnating, so'ng VS Code'ni qayta oching
 winget install Python.Python.3.13
-```
+# (yoki python.org dan yuklab, o'rnatishda "Add python.exe to PATH" ni belgilang)
 
-(yoki python.org dan yuklab, o'rnatishda **Add python.exe to PATH** ni belgilang).
-
-*Python o'rnatilgan bo'lsa* (lekin `python` unga ulanmagan), bu terminal uchun ulang:
-
-```powershell
+# B) Python o'rnatilgan bo'lsa (lekin "python" unga ulanmagan):
+#    shu terminal oynasi uchun ulang (har yangi oynada bir marta)
 Set-Alias python "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe"
 python --version
-```
 
-Yo'lni bilmasangiz, Python qayerdaligini topadi:
-
-```powershell
+# Python qayerdaligini bilmasangiz, shu buyruq yo'lini topib beradi:
 Get-ChildItem "$env:LOCALAPPDATA\Python","$env:LOCALAPPDATA\Programs\Python" -Filter python.exe -Recurse -Depth 2 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
-```
 
-#### 4.4.3. Paketlarni o'rnating (bir marta)
 
-```powershell
+# ------------------------------------------------------------
+# 4.4.3. Paketlarni o'rnating (faqat bir marta)
+# ------------------------------------------------------------
 pip install -r requirements.txt
-```
 
-#### 4.4.4. `.env` qiymatlarini terminalga yuklang (har yangi terminal oynasida bir marta)
 
-```powershell
+# ------------------------------------------------------------
+# 4.4.4. .env qiymatlarini terminalga yuklang
+#        (har yangi terminal oynasida bir marta)
+# ------------------------------------------------------------
 Get-Content .env | Where-Object { $_ -match '^\s*[^#=\s]+=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item "env:$($k.Trim())" $v.Trim() }
+
+
+# ------------------------------------------------------------
+# 4.4.5. Fayllarni SHU TARTIBDA ishga tushiring
+# ------------------------------------------------------------
+python dags\pipelines\contacts.py       # 1) kontaktlar  -> contacts jadvali
+python dags\pipelines\company.py        # 2) kompaniyalar -> company jadvali
+python dags\pipelines\transactions.py   # 3) bitimlar    -> transactions jadvali
+
+
+# ------------------------------------------------------------
+# 4.4.6. Natijani tekshiring
+# ------------------------------------------------------------
+psql -U postgres -d amocrm -c "\dt"
+# contacts, company, transactions jadvallari chiqishi kerak
+
+psql -U postgres -d amocrm -c "SELECT COUNT(*) FROM contacts;"
+# qatorlar soni 0 dan katta bo'lsa, ma'lumot bazaga yuklangan
 ```
-
-#### 4.4.5. Fayllarni shu tartibda ishga tushiring
-
-```powershell
-python dags\pipelines\contacts.py
-python dags\pipelines\company.py
-python dags\pipelines\transactions.py
-```
-
-Tekshirish: `psql -U postgres -d amocrm -c "\dt"` ichida `contacts`, `company`, `transactions` jadvallari chiqsin.
 
 ### 4.5. Docker bilan avtomatlashtirish
 
