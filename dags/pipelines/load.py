@@ -19,12 +19,3 @@ def loader(df: pd.DataFrame, table_name: str, conn=engine):
         return
     df.to_sql(table_name, conn, if_exists='replace', index=False)
 
-
-
-
-
-
-
-
-# db_url = f"postgresql://postgres:mdev3112@localhost:5432/amocrm"
-# db_url = f"postgresql://postgres:mdev3112@host.docker.internal:5432/amocrm"
