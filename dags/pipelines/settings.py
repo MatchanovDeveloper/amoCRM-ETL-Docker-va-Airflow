@@ -5,12 +5,6 @@ AMO_SUBDOMAIN = os.getenv("AMO_SUBDOMAIN", "matchanovmatchanboy1")
 AMO_LONG_TOKEN = os.getenv("AMO_LONG_TOKEN", "")
 
 
-# DB_USER = "postgres"   #database logini
-# DB_PASSWORD = "mdev3112"       # database paroli
-# DB_NAME = "amocrm"           #database nomi
-# DB_PORT = 5432
-# DB_HOST = "auto"     # "auto" = o'zi tanlaydi; qo'lda "localhost" yoki IP ham yozsa bo'ladi
-
 DB_USER = os.getenv("PG_USER", "postgres")   #database logini
 DB_PASSWORD = os.getenv("PG_PASSWORD", "")
 DB_NAME = os.getenv("PG_NAME", "amocrm")
