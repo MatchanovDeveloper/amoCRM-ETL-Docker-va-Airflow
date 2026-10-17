@@ -92,22 +92,60 @@ $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create
 
 Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
 
-### 4.4. Lokal ishga tushirish (ixtiyoriy, sinash uchun)
+### 4.4. How to run (localhost)
+
+#### 4.4.1. Python'ni tekshiring
 
 ```powershell
-python -m venv my_venv
-my_venv\Scripts\activate
-python -m pip install -r requirements.txt
+python --version
+```
 
-# .env dagi qiymatlarni shu terminal oynasiga yuklash
+`Python 3.x.x` chiqsa, 4.4.3-qadamga o'ting.
+
+#### 4.4.2. `Python was not found` chiqsa
+
+*Python o'rnatilmagan bo'lsa*, o'rnating va VS Code'ni qayta oching:
+
+```powershell
+winget install Python.Python.3.13
+```
+
+(yoki python.org dan yuklab, o'rnatishda **Add python.exe to PATH** ni belgilang).
+
+*Python o'rnatilgan bo'lsa* (lekin `python` unga ulanmagan), bu terminal uchun ulang:
+
+```powershell
+Set-Alias python "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe"
+python --version
+```
+
+Yo'lni bilmasangiz, Python qayerdaligini topadi:
+
+```powershell
+Get-ChildItem "$env:LOCALAPPDATA\Python","$env:LOCALAPPDATA\Programs\Python" -Filter python.exe -Recurse -Depth 2 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+```
+
+#### 4.4.3. Paketlarni o'rnating (bir marta)
+
+```powershell
+pip install -r requirements.txt
+```
+
+#### 4.4.4. `.env` qiymatlarini terminalga yuklang (har yangi terminal oynasida bir marta)
+
+```powershell
 Get-Content .env | Where-Object { $_ -match '^\s*[^#=\s]+=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item "env:$($k.Trim())" $v.Trim() }
+```
 
+#### 4.4.5. Fayllarni shu tartibda ishga tushiring
+
+```powershell
 python dags\pipelines\contacts.py
 python dags\pipelines\company.py
 python dags\pipelines\transactions.py
 ```
 
-pgAdmin'da `amocrm` bazasida 3 ta jadval paydo bo'lishi kerak. Paket yetishmasa: `python -m pip install requests pandas sqlalchemy "psycopg[binary]"`.
+Tekshirish: `psql -U postgres -d amocrm -c "\dt"` ichida `contacts`, `company`, `transactions` jadvallari chiqsin.
 
 ### 4.5. Docker bilan avtomatlashtirish
 
