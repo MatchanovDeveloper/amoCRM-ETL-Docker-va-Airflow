@@ -85,6 +85,10 @@ PG_USER=postgres
 PG_PASSWORD=<parol>
 PG_NAME=amocrm
 ```
+Agar yuqoridagi FERNET_KEYda 'Python was not found...' deb chiqsa quyidagi buyruqni kiriting:
+```
+$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b).Replace('+','-').Replace('/','_')
+```
 
 Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
 
