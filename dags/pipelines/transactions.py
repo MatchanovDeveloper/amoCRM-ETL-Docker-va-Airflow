@@ -5,13 +5,12 @@ from functions import city_fixer, parse_mixed_dates
 from load import loader
 
 ## ==== EXTRACT ====
-
+print("Extracting Transactions started...")
 data = get_transaction()
-
-df = pd.DataFrame(data)
 
 
 ## ==== TRANSFORM ====
+print("Transforming Transactions started...")
 
 transactions = []
 
@@ -153,4 +152,6 @@ transactions['Order_Date'] = transactions['Order_Date'].apply(parse_mixed_dates)
 
 
 ## ==== LOAD ====
+print("Loading Transactions started...")
 loader(transactions, 'transactions')
+print("Transactions loaded successfully!")
