@@ -53,7 +53,7 @@ git clone https://github.com/MatchanovDeveloper/amoCRM-ETL-Docker-va-Airflow.git
 cd amoCRM-ETL-Docker-va-Airflow
 ```
 
-PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Databases → Create → Database).
+PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Databases → Create → Database). Yoki yuklamoqchi bo'lgan bazangizni nomini yozing
 
 ### 4.2. Login va parollarni qayerdan olish
 
