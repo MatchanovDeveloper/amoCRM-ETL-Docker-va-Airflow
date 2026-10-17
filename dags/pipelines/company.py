@@ -6,14 +6,14 @@ from functions import parse_mixed_dates, city_fixer, format_uzb_phone
 import re
 
 ## ==== EXTRACT ====
-print("Extracting started...")
+print("Extracting Company started...")
 
 data = get_company()
 
 
 
 ## ==== TRANSFORM ====
-print("Transforming started...")
+print("Transforming Company started...")
 
 company = []
 
@@ -101,6 +101,6 @@ df['name'] = df['name'].str.replace(
 
 
 ## ==== LOAD ====
-print("Loading started...")
+print("Loading Company started...")
 loader(df, 'company')
-print("Loaded successfully!")
+print("Company loaded successfully!")
