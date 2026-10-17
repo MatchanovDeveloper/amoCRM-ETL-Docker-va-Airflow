@@ -63,7 +63,7 @@ PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Databases → Cre
 | `AMO_LONG_TOKEN` | amoCRM → Sozlamalar → Integratsiyalar → o'z integratsiyangiz → **Keys and accesses** → *long-lived token* yarating (muddati 1-5 yil). Token `eyJ...` bilan boshlanadi |
 | `PG_USER`, `PG_PASSWORD` | PostgreSQL logini (odatda `postgres`) va paroli. Parolni o'zingiz belgilaysiz: `ALTER USER postgres PASSWORD 'PAROL';` |
 | `PG_NAME` | Baza nomi (`amocrm`) |
-| `FERNET_KEY` | Terminalda yaratiladi: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"` [bu yerga qarang](#fernet_key-xatosi) |
+| `FERNET_KEY` | Terminalda yaratiladi: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"` xato chiqsa: [bu yerga qarang](#fernet_key-xatosi) |
 | `AIRFLOW_UID` | Windows'da `50000` |
 | Airflow login / parol | `airflow` / `airflow` (<http://localhost:8080>) |
 
