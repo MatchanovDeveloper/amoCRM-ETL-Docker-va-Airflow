@@ -174,5 +174,4 @@ Boshqa vaqt uchun shu cron ifodani o'zgartiring (`soat`, `daqiqa` tartibiga e'ti
 
 - **Token bekor bo'lsa** (`Token has been revoked`): `access_token.txt` va `refresh_token.txt` ni o'chiring, amoCRM'dan yangi kod olib `AMO_AUTH_CODE` ga yozing, bir marta ishga tushiring, so'ng kodni yana bo'sh qoldiring.
 - **Airflow ishlab turganda lokal skriptni ishga tushirmang:** ikkalasi bir xil tokenni yangilab, bir-birini bekor qiladi.
-- **Maxfiylik:** `.gitignore` ga `dags/pipelines/sozlamalar.py`, `.env`, `access_token.txt`, `refresh_token.txt`, `my_venv/` qo'shing va ularni hech kimga yubormang.
 - **To'xtatish:** `docker compose stop`. `docker compose down -v` ni ishlatmang, u Airflow bazasini o'chirib yuboradi.
