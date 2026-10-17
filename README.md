@@ -85,10 +85,15 @@ PG_USER=postgres
 PG_PASSWORD=<parol>
 PG_NAME=amocrm
 ```
-FERNET_KEY yaratayotganda 'Python was not found...' deb chiqsa quyidagi buyruqni kiriting:
-```
+### FERNET_KEY xatosi
+
+`FERNET_KEY` ni yaratayotganda `Python was not found` chiqsa, Python kerak emas, shu buyruq kalitni PowerShell'ning o'zida yaratadi:
+
+```powershell
 $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b).Replace('+','-').Replace('/','_')
 ```
+
+Chiqqan qatorni `.env` dagi `FERNET_KEY=` dan keyin yozing.
 
 Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
 
