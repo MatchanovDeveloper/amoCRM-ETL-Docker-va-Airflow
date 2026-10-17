@@ -7,11 +7,10 @@ from functions import format_uzb_phone, city_fixer
 
 
 ## ==== ETXRACT ====
-
+print("Extracting Contacts started...")
 
 data = get_contact()
 
-d = pd.DataFrame(data)
 
 
 df = []
@@ -39,6 +38,7 @@ contact = pd.DataFrame(df)
 
 
 ## ==== TRANSFORM ====
+print("Transforming Contacts started...")
 
 contact.dtypes
 
@@ -73,7 +73,8 @@ contact['company'] =contact['company'].str.replace(
 
 
 ## ==== LOAD ====
-
+print("Loading Contacts started...")
 loader(contact, 'contacts')
+print("Contacts loaded successfully!")
 
 
