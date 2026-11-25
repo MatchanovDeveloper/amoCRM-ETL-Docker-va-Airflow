@@ -1,20 +1,20 @@
 # amoCRM → PostgreSQL ETL
 
-## 1. Loyiha haqida
+## 1. About the Project
 
-Bu loyiha amoCRM'dagi **kontaktlar**, **kompaniyalar** va **bitimlarni** avtomatik olib, **PostgreSQL** bazasiga yozadi. Ma'lumotlar keyin tahlil uchun (SQL, Power BI va h.k.) tayyor turadi.
+This project automatically extracts **contacts**, **companies**, and **deals** from amoCRM and loads them into a **PostgreSQL** database. The data is then ready for analysis (SQL, Power BI, etc.).
 
-Ishlatilgan texnologiyalar: Python (pandas, SQLAlchemy), amocrm-api kutubxonasi, PostgreSQL, Apache Airflow va Docker.
+Technologies used: Python (pandas, SQLAlchemy), amocrm-api library, PostgreSQL, Apache Airflow, and Docker.
 
-## 2. Arxitektura
+## 2. Architecture
 
-```
+```text
 amoCRM  ──►  extracter.py  ──►  contacts.py / company.py / transactions.py  ──►  load.py  ──►  PostgreSQL
                                               ▲
                                   Airflow DAG (dag.py) har kuni ishga tushiradi
 ```
 
-```
+```text
 amoCRM/
 ├── dags/
 │   ├── dag.py                # Airflow DAG: 3 task va jadval
@@ -34,42 +34,42 @@ amoCRM/
 └── refresh_token.txt         # avtomatik yaratiladi
 ```
 
-## 3. ETL jarayoni
+## 3. ETL Process
 
-1. **Extract:** `extracter.py` amoCRM'dan hamma kontakt, kompaniya va bitimlarni oladi. Token muddati tugasa, o'zi yangilaydi.
-2. **Transform:** `contacts.py`, `company.py`, `transactions.py` xom ma'lumotdan kerakli ustunlarni ajratib, jadval (pandas DataFrame) tayyorlaydi (qo'shimcha maydonlar va teglar `functions.py` / `extracter.py` yordamida olinadi).
-3. **Load:** `load.py` jadvallarni PostgreSQL'ning `amocrm` bazasiga `contacts`, `company`, `transactions` nomlari bilan yozadi. Har safar jadval yangidan yoziladi (eski ma'lumot almashadi).
+1. **Extract:** `extracter.py` fetches all contacts, companies, and deals from amoCRM. If the token expires, it refreshes it automatically.
+2. **Transform:** `contacts.py`, `company.py`, and `transactions.py` extract the required columns from the raw data and prepare a table (pandas DataFrame) (custom fields and tags are retrieved using `functions.py` / `extracter.py`).
+3. **Load:** `load.py` writes the tables into the `amocrm` database in PostgreSQL under the names `contacts`, `company`, and `transactions`. Each run overwrites the tables with fresh data (replacing old records).
 
-Airflow'da tartib: `contacts → company → transactions`.
+Order in Airflow: `contacts → company → transactions`.
 
-## 4. Qanday ishga tushiriladi (How to run)
+## 4. How to Run
 
-### 4.1. Tayyorlash
+### 4.1. Preparation
 
-Kerak: Docker Desktop, PostgreSQL, Git (lokal sinash uchun qo'shimcha Python 3.13).
+Required: Docker Desktop, PostgreSQL, Git (and Python 3.13 for local testing).
 
 ```powershell
 git clone https://github.com/MatchanovDeveloper/amoCRM-ETL-Docker-va-Airflow.git
 cd amoCRM-ETL-Docker-va-Airflow
 ```
 
-PostgreSQL'da `amocrm` bazasini oldindan yarating (pgAdmin → Databases → Create → Database). Yoki yuklamoqchi bo'lgan bazangizni nomini yozing
+Create the `amocrm` database in PostgreSQL beforehand (pgAdmin → Databases → Create → Database), or specify the name of the database you want to load the data into.
 
-### 4.2. Login va parollarni qayerdan olish
+### 4.2. Where to Get Logins and Passwords
 
-| Nima | Qayerdan olinadi |
+| Item | Where to get it |
 |---|---|
-| `AMO_SUBDOMAIN` | amoCRM manzilidagi nom: `https://BU_YERDA.amocrm.ru` |
-| `AMO_LONG_TOKEN` | amoCRM → Sozlamalar → Integratsiyalar → o'z integratsiyangiz → **Keys and accesses** → *long-lived token* yarating (muddati 1-5 yil). Token `eyJ...` bilan boshlanadi |
-| `PG_USER`, `PG_PASSWORD` | PostgreSQL logini (odatda `postgres`) va paroli. Parolni o'zingiz belgilaysiz: `ALTER USER postgres PASSWORD 'PAROL';` |
-| `PG_NAME` | Baza nomi (`amocrm`) |
-| `FERNET_KEY` | Terminalda yaratiladi: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"` xato chiqsa: [bu yerga qarang](#fernet_key-xatosi) |
-| `AIRFLOW_UID` | Windows'da `50000` |
-| Airflow login / parol | `airflow` / `airflow` (<http://localhost:8080>) |
+| `AMO_SUBDOMAIN` | The subdomain in your amoCRM URL: `https://HERE.amocrm.ru` |
+| `AMO_LONG_TOKEN` | amoCRM → Settings → Integrations → your integration → **Keys and accesses** → generate a *long-lived token* (valid for 1–5 years). The token starts with `eyJ...` |
+| `PG_USER`, `PG_PASSWORD` | Your PostgreSQL username (usually `postgres`) and password. You set the password yourself: `ALTER USER postgres PASSWORD 'PAROL';` |
+| `PG_NAME` | Database name (`amocrm`) |
+| `FERNET_KEY` | Generated in the terminal: `python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"` If an error occurs: [see here](#fernet_key-error) |
+| `AIRFLOW_UID` | `50000` on Windows |
+| Airflow login / password | `airflow` / `airflow` (<http://localhost:8080>) |
 
-### 4.3. `.env` faylni yaratish
+### 4.3. Creating the `.env` File
 
-Maxfiy bo'lgani uchun `.env` GitHub'da yo'q. Namunadan nusxa oling va to'ldiring:
+Since it contains sensitive data, `.env` is not included on GitHub. Copy the example file and fill it in:
 
 ```powershell
 Copy-Item .env.example .env
@@ -85,56 +85,56 @@ PG_USER=postgres
 PG_PASSWORD=<parol>
 PG_NAME=amocrm
 ```
-### FERNET_KEY xatosi
 
-`FERNET_KEY` ni yaratayotganda `Python was not found` chiqsa, Python kerak emas, shu buyruq kalitni PowerShell'ning o'zida yaratadi:
+### FERNET_KEY Error
+
+If you get `Python was not found` when generating `FERNET_KEY`, you don't need Python—this command generates the key directly in PowerShell:
 
 ```powershell
 $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b).Replace('+','-').Replace('/','_')
 ```
 
-Chiqqan qatorni `.env` dagi `FERNET_KEY=` dan keyin yozing.
+Paste the generated string after `FERNET_KEY=` in `.env`.
 
-Qiymatlar qo'shtirnoqsiz, bo'sh joysiz, bir qatorda yozilsin. `settings.py` ga tegmaysiz, u hamma narsani `.env` dan o'qiydi.
+Values must be written on a single line without quotes or spaces. Do not modify `settings.py`; it reads everything from `.env`.
 
+### 4.4. How to Run (localhost)
 
-### 4.4. How to run (localhost)
-
-#### 4.4.1. Python'ni tekshiring
+#### 4.4.1. Check Python
 
 ```powershell
 python --version
 ```
 
-`Python 3.x.x` chiqsa, 4.4.3 ga o'ting.
+If it outputs `Python 3.x.x`, skip to step 4.4.3.
 
-#### 4.4.2. `Python was not found` chiqsa
+#### 4.4.2. If `Python was not found` Appears
 
-Python o'rnatilmagan bo'lsa, o'rnating va VS Code'ni qayta oching:
+If Python is not installed, install it and restart VS Code:
 
 ```powershell
 winget install Python.Python.3.13
 ```
 
-O'rnatilgan bo'lsa, ulang:
+If it is already installed, link it:
 
 ```powershell
 Set-Alias python "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\python.exe"
 ```
 
-#### 4.4.3. Paketlarni o'rnating
+#### 4.4.3. Install Packages
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-#### 4.4.4. `.env` ni terminalga yuklang
+#### 4.4.4. Load `.env` into the Terminal
 
 ```powershell
 Get-Content .env | Where-Object { $_ -match '^\s*[^#=\s]+=' } | ForEach-Object { $k,$v = $_ -split '=',2; Set-Item "env:$($k.Trim())" $v.Trim() }
 ```
 
-#### 4.4.5. Fayllarni shu tartibda ishga tushiring
+#### 4.4.5. Run the Files in This Order
 
 ```powershell
 python dags\pipelines\contacts.py
@@ -142,11 +142,10 @@ python dags\pipelines\company.py
 python dags\pipelines\transactions.py
 ```
 
+### 4.5. Automation with Docker
 
-### 4.5. Docker bilan avtomatlashtirish
-
-1. Docker Desktop'ni oching ("Engine running" chiqquncha kuting).
-2. Birinchi marta:
+1. Open Docker Desktop (wait until it says "Engine running").
+2. For the first run:
 
 ```powershell
 docker compose up airflow-init
@@ -154,24 +153,23 @@ docker compose up -d --build
 docker compose ps
 ```
 
-`docker compose ps` da hamma servis `healthy` yoki `running` bo'lsin. Keyingi safarlarda faqat `docker compose up -d`.
+In `docker compose ps`, all services should show `healthy` or `running`. For subsequent runs, simply use `docker compose up -d`.
 
-3. <http://localhost:8080> ni oching (login `airflow`, parol `airflow`), `amo_crm` DAG'ini yoqing (Unpause), **Trigger** bosing. Uchala task (`contacts` → `company` → `transactions`) yashil bo'lishi kerak.
-4. `.env` ni keyin o'zgartirsangiz: `docker compose down`, so'ng `docker compose up -d` (`-v` qo'shmang).
+3. Open <http://localhost:8080> (login `airflow`, password `airflow`), enable (Unpause) the `amo_crm` DAG, and click **Trigger**. All three tasks (`contacts` → `company` → `transactions`) should turn green.
+4. If you modify `.env` later: run `docker compose down`, then `docker compose up -d` (do not add `-v`).
 
+### 4.6. Daily Automatic Updates
 
-### 4.6. Har kuni avtomatik yangilash
-
-`dags/dag.py` ichidagi `schedule` qatori vaqtni belgilaydi:
+The `schedule` line inside `dags/dag.py` sets the run time:
 
 ```python
 schedule="0 6 * * *",   # har kuni 06:00 (Toshkent vaqti)
 ```
 
-Boshqa vaqt uchun shu cron ifodani o'zgartiring (`soat`, `daqiqa` tartibiga e'tibor bering: `daqiqa soat kun oy hafta_kuni`). DAG vaqti Toshkent bo'yicha hisoblanishi uchun `start_date` da `tz="Asia/Tashkent"` bo'lishi kerak. Avtomatik ishlashi uchun o'sha vaqtda kompyuter yoqilgan va Docker Desktop ochiq bo'lishi shart.
+To set a different time, modify this cron expression (pay attention to the `minute` and `hour` order: `minute hour day month day_of_week`). For the DAG schedule to follow Tashkent time, `start_date` must include `tz="Asia/Tashkent"`. For automatic runs to work, your computer must be turned on and Docker Desktop must be running at that scheduled time.
 
-### 4.7. Muhim eslatmalar
+### 4.7. Important Notes
 
-- **Token bekor bo'lsa** (`Token has been revoked`): `access_token.txt` va `refresh_token.txt` ni o'chiring, amoCRM'dan yangi kod olib `AMO_AUTH_CODE` ga yozing, bir marta ishga tushiring, so'ng kodni yana bo'sh qoldiring.
-- **Airflow ishlab turganda lokal skriptni ishga tushirmang:** ikkalasi bir xil tokenni yangilab, bir-birini bekor qiladi.
-- **To'xtatish:** `docker compose stop`. `docker compose down -v` ni ishlatmang, u Airflow bazasini o'chirib yuboradi.
+- **If the token is revoked** (`Token has been revoked`): delete `access_token.txt` and `refresh_token.txt`, get a new authorization code from amoCRM, put it in `AMO_AUTH_CODE`, run the pipeline once, and then leave the code blank again.
+- **Do not run local scripts while Airflow is running:** both will refresh the same token and invalidate each other.
+- **To stop:** `docker compose stop`. Do not use `docker compose down -v`, as it will delete the Airflow database.
